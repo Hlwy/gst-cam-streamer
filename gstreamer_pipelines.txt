@@ -1,0 +1,43 @@
+===========================
+Tegra TX2
+===========================
+
+Server Side
+-----------
+gst-launch-1.0 nvcamerasrc fpsRange="30 30" intent=3 ! nvvidconv ! 'video/x-raw(memory:NVMM), width=(int)1920, height=(int)1080, format=(string)I420, framerate=(fraction)30/1' ! omxh264enc control-rate=2 bitrate=4000000 ! 'video/x-h264, stream-format=(string)byte-stream' ! h264parse ! rtph264pay mtu=1400 ! udpsink host=192.168.1.82 port=5000 sync=false async=false
+
+
+Client Side
+-----------
+gst-launch-1.0 udpsrc port=5000 ! application/x-rtp,encoding-name=H264,payload=96 ! rtph264depay ! h264parse ! queue ! avdec_h264 ! xvimagesink sync=false async=false -e
+
+
+===========================
+Ubuntu
+===========================
+
+Serv 1:
+-------
+gst-launch-1.0 -v autovideosrc bitrate=1000000 ! 'video/x-raw,width=640,height=480' ! videoconvert ! x264enc ! h264parse ! queue ! rtph264pay config-interval=1 pt=96 ! gdppay ! udpsink host=192.168.2.52 port=5000
+
+Client 1:
+---------
+gst-launch-1.0 udpsrc port=5000 ! gdpdepay ! rtph264depay ! avdec_h264 ! videoconvert ! xvimagesink
+
+
+Serv 2:
+-------
+gst-launch-1.0 -v autovideosrc ! videoconvert ! x264enc bitrate=1024 speed-preset=superfast qp-min=30 threads=4 tune=zerolatency ! h264parse ! queue ! rtph264pay config-interval=1 pt=96 ! udpsink host=192.168.2.52 port=5000
+
+Client 2:
+---------
+gst-launch-1.0 udpsrc port=5000 caps="application/x-rtp, media=(string)video, clock-rate=(int)90000" ! rtph264depay ! avdec_h264 ! videoconvert ! xvimagesink
+
+
+Serv 3:
+-------
+gst-launch-1.0 -vv -e autovideosrc ! queue ! x264enc bitrate=1024 speed-preset=superfast qp-min=30 tune=zerolatency ! mpegtsmux alignment=7 ! rndbuffersize max=1316 min=1316 ! udpsink host=192.168.2.52 port=5000
+
+Client 3:
+---------
+gst-launch-1.0 -vvv udpsrc port=5000 caps="video/mpegts, systemstream=(boolean)true, packetsize=(int)188" ! tsparse ! tsdemux ! h264parse ! avdec_h264 ! videoconvert ! xvimagesink
