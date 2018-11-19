@@ -13,7 +13,7 @@ int main(int argc, char *argv[]){
      // VideoCapture cap("udpsrc port=5000 ! application/x-rtp, media=(string)video, clock-rate=(int)90000 ! rtph264depay ! avdec_h264 ! videoconvert ! video/x-raw, format=(string)BGR ! appsink");
 
      // Experimental Pipeline
-     VideoCapture cap("udpsrc port=5000 ! application/x-rtp, media=video, clock-rate=90000, encoding-name=H264 ! queue ! rtph264depay ! avdec_h264 ! nvvidconv ! videoconvert ! video/x-raw, format=BGR, height=720, width=1280 ! appsink");
+     VideoCapture cap("udpsrc port=5000 ! application/x-rtp, media=video, clock-rate=90000, encoding-name=H264 ! queue ! rtph264depay ! avdec_h264 ! nvvidconv ! videoconvert ! video/x-raw, format=BGR, height=720, width=1280 ! appsink sync=false");
 
      if(!cap.isOpened()){
           std::cout<<"VideoCapture not opened"<<std::endl;
