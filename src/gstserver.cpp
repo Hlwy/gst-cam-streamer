@@ -9,8 +9,14 @@ using namespace cv;
 int main(int argc, char *argv[]){
      std::cout << cv::getBuildInformation() << std::endl;
 
-     VideoCapture cap("autovideosrc ! appsink",CAP_GSTREAMER);
-     VideoWriter out("-vvv appsrc ! videoconvert ! video/x-raw,format=I420 ! x264enc bitrate=1024 speed-preset=superfast qp-min=30 threads=4 tune=zerolatency ! queue ! h264parse disable-passthrough=true ! rtph264pay config-interval=1 pt=96 mtu=60000 ! udpsink host=192.168.2.52 port=5000",CAP_GSTREAMER,0,30,Size(640,480),true);
+     // // GstPipeline: gst-launch-1.0 -v autovideosrc ! videoconvert ! video/x-raw,format=BGR ! x264enc bitrate=1024 speed-preset=superfast qp-min=30 threads=4 tune=zerolatency ! queue ! h264parse ! rtph264pay config-interval=1 pt=96 mtu=1400 ! udpsink host=192.168.2.52 port=5000 sync=false async=false
+     // VideoCapture cap("autovideosrc ! appsink",CAP_GSTREAMER);
+     // VideoWriter out("-vvv appsrc ! videoconvert ! video/x-raw, format=BGR ! x264enc bitrate=1024 speed-preset=superfast qp-min=30 threads=4 tune=zerolatency ! queue ! h264parse ! rtph264pay config-interval=1 pt=96 mtu=1400 ! udpsink host=192.168.2.52 port=5000 sync=false async=false",CAP_GSTREAMER,0,30,Size(640,480),true);
+
+     // GstPipeline TegraTX2: gst-launch-1.0 nvcamerasrc fpsRange="30 30" intent=3 ! nvvidconv flip-method=4 ! 'video/x-raw(memory:NVMM), width=(int)1920, height=(int)1080, format=(string)I420, framerate=(fraction)30/1' ! omxh264enc control-rate=2 bitrate=4000000 ! 'video/x-h264, stream-format=(string)byte-stream' ! h264parse ! rtph264pay mtu=1400 ! udpsink host=192.168.2.50 port=5000 sync=false async=false
+     VideoCapture cap("nvcamerasrc ! nvvidconv flip-method=4 ! video/x-raw, format=(string)BGRx ! videoconvert ! video/x-raw, format=(string)BGR ! appsink",CAP_GSTREAMER);
+     VideoWriter out("-vvv appsrc ! omxh264enc control-rate=2 bitrate=4000000 ! video/x-h264, stream-format=(string)byte-stream ! h264parse ! rtph264pay mtu=1400 ! udpsink host=192.168.2.50 port=5000 sync=false async=false",CAP_GSTREAMER,0,30,Size(640,480),true);
+
 
      if(!cap.isOpened()){
           std::cout<<"VideoCapture not opened"<<std::endl;
